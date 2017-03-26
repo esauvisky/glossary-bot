@@ -1,1 +1,1 @@
-web: gunicorn gloss.wsgi:app --debug --log-file=-
+web: gunicorn gloss.wsgi:app --log-file=-
