@@ -233,7 +233,7 @@ def get_command_action_and_params(command_text):
     command_params = u' '.join(command_components[1:])
     return command_action, command_params
 
-def query_definition_and_get_response(slash_command, command_text, user_name, channel_id, private_response):
+def query_definition_and_get_response(slash_command, command_text, user_name, channel_id):
     ''' Get the definition for the passed term and return the appropriate responses
     '''
     # query the definition
@@ -255,15 +255,7 @@ def query_definition_and_get_response(slash_command, command_text, user_name, ch
     log_query(term=command_text, user_name=user_name, action=u'found')
 
     fallback = u'{name} {command} {term}: {definition}'.format(name=user_name, command=slash_command, term=entry.term, definition=entry.definition)
-    if not private_response:
-        image_url = get_image_url(entry.definition)
-        pretext = u'*{name}* {command} {text}'.format(name=user_name, command=slash_command, text=command_text)
-        title = entry.term
-        text = entry.definition
-        send_webhook_with_attachment(channel_id=channel_id, text=text, fallback=fallback, pretext=pretext, title=title, image_url=image_url)
-        return u'', 200
-    else:
-        return fallback, 200
+    return fallback, 200
 
 def search_term_and_get_response(command_text):
     ''' Search the database for the passed term and return the results
@@ -354,7 +346,7 @@ def index():
     # if the text is a single word that's not a single-word command, treat it as a get
     if command_text.count(u' ') is 0 and len(command_text) > 0 and \
        command_text.lower() not in STATS_CMDS + RECENT_CMDS + HELP_CMDS + SET_CMDS:
-        return query_definition_and_get_response(slash_command, command_text, user_name, channel_id, False)
+        return query_definition_and_get_response(slash_command, command_text, user_name, channel_id)
 
     #
     # SET definition
@@ -364,14 +356,6 @@ def index():
     if '=' in command_text:
         return set_definition_and_get_response(slash_command, command_text, user_name)
 
-    # we'll respond privately if the text is prefixed with 'shh ' (or any number of s followed by any number of h)
-    shh_pattern = compile(r'^s+h+ ')
-    private_response = shh_pattern.match(command_text)
-    if private_response:
-        # strip the 'shh' from the command text
-        command_text = shh_pattern.sub('', command_text)
-
-    # extract the command action and parameters
     command_action, command_params = get_command_action_and_params(command_text)
 
     #
@@ -418,16 +402,7 @@ def index():
     if command_action in STATS_CMDS:
         stats_newline = get_stats()
         stats_comma = sub(u'\n', u', ', stats_newline)
-        if not private_response:
-            # send the message
-            fallback = u'{name} {command} stats: {comma}'.format(name=user_name, command=slash_command, comma=stats_comma)
-            pretext = u'*{name}* {command} stats'.format(name=user_name, command=slash_command)
-            title = u''
-            send_webhook_with_attachment(channel_id=channel_id, text=stats_newline, fallback=fallback, pretext=pretext, title=title)
-            return u'', 200
-
-        else:
-            return stats_comma, 200
+        return stats_comma, 200
 
     #
     # LEARNINGS/RECENT
@@ -437,20 +412,11 @@ def index():
         # extract parameters
         recent_args = parse_learnings_params(command_params)
         learnings_plain_text, learnings_rich_text = get_learnings(**recent_args)
-        if not private_response:
-            # send the message
-            fallback = u'{name} {command} learnings {params}: {text}'.format(name=user_name, command=slash_command, params=command_params, text=learnings_plain_text)
-            pretext = u'*{name}* {command} learnings {params}'.format(name=user_name, command=slash_command, params=command_params)
-            title = u''
-            send_webhook_with_attachment(channel_id=channel_id, text=learnings_rich_text, fallback=fallback, pretext=pretext, title=title, mrkdwn_in=["text"])
-            return u'', 200
-
-        else:
-            return learnings_plain_text, 200
+        return learnings_plain_text, 200
 
     #
     # GET definition (for any text that wasn't caught before this)
     #
 
     # check the definition
-    return query_definition_and_get_response(slash_command, command_text, user_name, channel_id, private_response)
+    return query_definition_and_get_response(slash_command, command_text, user_name, channel_id)
