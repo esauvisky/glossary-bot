@@ -12,7 +12,6 @@ if path.exists('.env'):
             environ[var[0]] = var[1]
 
 app = create_app(environ)
-DEBUG = True
 manager = Manager(app)
 
 migrate = Migrate(app, db)
