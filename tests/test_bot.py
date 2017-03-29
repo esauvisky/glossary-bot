@@ -107,8 +107,6 @@ class TestBot(TestBase):
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u'overwriting the previous entry' in robo_response.data)
 
-        robo_response = self.post_command(text=u'shh lower case')
-        self.assertTrue(u'LOWER CASE: really not upper case' in robo_response.data)
 
     def test_set_identical_definition(self):
         ''' Correct response for setting an identical definition for an existing term
@@ -348,7 +346,7 @@ class TestBot(TestBase):
         '''
         # set and get a definition to generate some stats
         self.post_command(text=u'EW = Eligibility Worker')
-        self.post_command(text=u'shh EW')
+        self.post_command(text=u'EW')
 
         # capture the bot's POST to the incoming webhook and test its content
         def response_content(url, request):
@@ -495,12 +493,11 @@ class TestBot(TestBase):
         alpha_check = alpha_check[:12]
 
         # get chronological learnings
-        robo_response = self.post_command(text=u'shh learnings')
+        robo_response = self.post_command(text=u'learnings')
         self.assertEqual(robo_response.status_code, 200)
-        self.assertTrue(u', '.join(desc_check) in robo_response.data)
 
         # get alphabetical learnings
-        robo_response = self.post_command(text=u'shh learnings alpha')
+        robo_response = self.post_command(text=u'learnings alpha')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(alpha_check) in robo_response.data)
 
@@ -513,7 +510,7 @@ class TestBot(TestBase):
             self.post_command(text=u'{letter}W = {letter}ligibility Worker'.format(letter=letter))
 
         # get chronological learnings
-        robo_response = self.post_command(text=u'shh learnings 7 4')
+        robo_response = self.post_command(text=u'learnings 7 4')
         self.assertEqual(robo_response.status_code, 200)
         control = robo_response.data
 
@@ -522,15 +519,15 @@ class TestBot(TestBase):
         check_terms[0] = check_terms[0][-2:]
 
         # get a few random learnings
-        robo_response = self.post_command(text=u'shh learnings random 7 4')
+        robo_response = self.post_command(text=u'learnings random 7 4')
         self.assertEqual(robo_response.status_code, 200)
         random1 = robo_response.data
 
-        robo_response = self.post_command(text=u'shh learnings random 7 4')
+        robo_response = self.post_command(text=u'learnings random 7 4')
         self.assertEqual(robo_response.status_code, 200)
         random2 = robo_response.data
 
-        robo_response = self.post_command(text=u'shh learnings random 7 4')
+        robo_response = self.post_command(text=u'learnings random 7 4')
         self.assertEqual(robo_response.status_code, 200)
         random3 = robo_response.data
 
@@ -553,20 +550,20 @@ class TestBot(TestBase):
             check.insert(0, u'{}W'.format(letter))
 
         # get all learnings
-        robo_response = self.post_command(text=u'shh learnings all')
+        robo_response = self.post_command(text=u'learnings all')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
         # if 'all' is part of the command, other limiting params are ignored
-        robo_response = self.post_command(text=u'shh learnings all 5')
+        robo_response = self.post_command(text=u'learnings all 5')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
-        robo_response = self.post_command(text=u'shh learnings 5 3 all')
+        robo_response = self.post_command(text=u'learnings 5 3 all')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
-        robo_response = self.post_command(text=u'shh learnings all 3 5')
+        robo_response = self.post_command(text=u'learnings all 3 5')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
@@ -582,7 +579,7 @@ class TestBot(TestBase):
         check = [u'{}W'.format(item) for item in list(reversed(letters[-limit:]))]
 
         # get some learnings
-        robo_response = self.post_command(text=u'shh learnings {}'.format(limit))
+        robo_response = self.post_command(text=u'learnings {}'.format(limit))
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
@@ -599,7 +596,7 @@ class TestBot(TestBase):
         check = [u'{}W'.format(item) for item in list(reversed(letters[-(limit + offset):-offset]))]
 
         # get some learnings
-        robo_response = self.post_command(text=u'shh learnings {} {}'.format(limit, offset))
+        robo_response = self.post_command(text=u'learnings {} {}'.format(limit, offset))
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u', '.join(check) in robo_response.data)
 
@@ -607,19 +604,19 @@ class TestBot(TestBase):
         ''' Language describing learnings is numerically accurate
         '''
         # ask for learnings before any values have been set
-        robo_response = self.post_command(text=u'shh learnings')
+        robo_response = self.post_command(text=u'learnings')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u'I haven\'t learned any definitions yet.' in robo_response.data)
 
         # when one value has been set
         self.post_command(text=u'EW = Eligibility Worker')
-        robo_response = self.post_command(text=u'shh learnings')
+        robo_response = self.post_command(text=u'learnings')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u'I recently learned the definition for' in robo_response.data)
 
         # when more than one value has been set
         self.post_command(text=u'FW = Fligibility Worker')
-        robo_response = self.post_command(text=u'shh learnings')
+        robo_response = self.post_command(text=u'learnings')
         self.assertEqual(robo_response.status_code, 200)
         self.assertTrue(u'I recently learned definitions for' in robo_response.data)
 
@@ -649,13 +646,13 @@ class TestBot(TestBase):
         self.assertFalse(u'*/gloss' in robo_response.data)
 
         # ask for a definition that doesn't exist
-        robo_response = self.post_command(text=u'shh EW', slash_command=test_command)
+        robo_response = self.post_command(text=u'EW', slash_command=test_command)
         self.assertTrue(u'*{}'.format(test_command) in robo_response.data)
         self.assertFalse(u'*/gloss' in robo_response.data)
 
         # get a definition that does exist
         self.post_command(text=u'EW = Eligibility Worker', slash_command=test_command)
-        robo_response = self.post_command(text=u'shh EW', slash_command=test_command)
+        robo_response = self.post_command(text=u'EW', slash_command=test_command)
         self.assertTrue(u'{}'.format(test_command) in robo_response.data)
         self.assertFalse(u'/gloss' in robo_response.data)
 
@@ -671,7 +668,7 @@ class TestBot(TestBase):
         test_command = u'/gg'
         # set and get a definition to generate some stats
         self.post_command(text=u'EW = Eligibility Worker')
-        self.post_command(text=u'shh EW')
+        self.post_command(text=u'EW')
 
         # capture the bot's POST to the incoming webhook and test its content
         def response_content(url, request):
@@ -742,16 +739,7 @@ class TestBot(TestBase):
         self.assertEqual(definition_check.definition, u'Eligibility Worker')
 
         # send a POST to the bot to request the quiet definition
-        robo_response = self.post_command(text=u'shh EW')
-        self.assertTrue(u'glossie' in robo_response.data)
-        self.assertTrue(u'EW: Eligibility Worker' in robo_response.data)
-
-        # send POSTs with variations of 'shh' to make sure that they're caught
-        robo_response = self.post_command(text=u'ssh EW')
-        self.assertTrue(u'glossie' in robo_response.data)
-        self.assertTrue(u'EW: Eligibility Worker' in robo_response.data)
-
-        robo_response = self.post_command(text=u'sh EW')
+        robo_response = self.post_command(text=u'EW')
         self.assertTrue(u'glossie' in robo_response.data)
         self.assertTrue(u'EW: Eligibility Worker' in robo_response.data)
 

@@ -41,7 +41,7 @@ class TestBotSearch(TestBase):
             self.post_command(text=u'{} = {}'.format(post_match[0], post_match[1]))
 
         # request a definition that doesn't exist, but that will generate suggestions
-        robo_response = self.post_command(text=u'shh stink')
+        robo_response = self.post_command(text=u'stink')
         match_text = ', '.join(['*{}*'.format(item[0]) for item in matches])
         self.assertTrue(match_text in robo_response.data)
 
@@ -65,12 +65,6 @@ class TestBotSearch(TestBase):
         # make some searchs and verify that they come back as expected
         robo_response = self.post_command(text=u'search youth')
         self.assertTrue('found *youth* in: *ACYF*, *TAY*' in robo_response.data)
-
-        robo_response = self.post_command(text=u'search saws')
-        self.assertTrue('found *saws* in: *SAWS*, *CalWIN*' in robo_response.data)
-
-        robo_response = self.post_command(text=u'search calwin')
-        self.assertTrue('found *calwin* in: *CalWIN*, *SAWS*')
 
         robo_response = self.post_command(text=u'search state')
         self.assertTrue('*TAY*' in robo_response.data)
