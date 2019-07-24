@@ -5,4 +5,4 @@ Flask-SQLAlchemy==2.0
 gunicorn==19.3.0
 httmock==1.2.3
 psycopg2==2.6
-requests==2.6.0
+requests==2.20.0
